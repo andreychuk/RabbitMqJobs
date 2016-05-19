@@ -1,0 +1,30 @@
+{
+  "name": "andreychuk/rabbitmq",
+  "keywords": [
+    "RabbitMQ"
+  ],
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Vanya Andreychuk",
+      "email": "vanya@tep.io",
+      "role": "Developer"
+    }
+  ],
+  "version": "0.1",
+  "require": {
+    "php-amqplib/php-amqplib": "v2.6.1"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "~3.5"
+  },
+  "bin": [
+    "bin/rabbitmq"
+  ],
+  "minimum-stability": "dev",
+  "autoload":{
+    "psr-4":{
+      "Andreychuk\\RabbitMq\\":"src"
+    }
+  }
+}
