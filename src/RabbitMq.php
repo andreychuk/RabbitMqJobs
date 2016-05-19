@@ -20,6 +20,11 @@ class RabbitMq
     private $user;
     private $password;
 
+    public function __construct()
+    {
+        $this->getParamsFromEnv();
+    }
+
     /**
      * @param $host
      */

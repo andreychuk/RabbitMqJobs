@@ -9,11 +9,6 @@ namespace Andreychuk\RabbitMq;
  */
 class RabbitMqWork extends RabbitMq
 {
-    public function __construct()
-    {
-        $this->getParamsFromEnv();
-    }
-
     public function work()
     {
         $this->connect();
