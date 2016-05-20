@@ -16,5 +16,42 @@ foreach ($files as $file) {
 }
 
 
+
+$queue = new \Andreychuk\RabbitMq\RabbitMqQueue();
+$queue->setQueue('test');
+$queue->setHost('192.168.99.100');
+$queue->setPort('5672');
+$queue->setUser('admin');
+$queue->setPassword('GWzEk*DZEqd`eU2m');
+
+$time = new DateTime();
+
+
+$queue->enqueueAt('\Andreychuk\RabbitMq\Job', ['a' => 1], $time->add(new DateInterval(
+    'PT60S'
+)));
+
+$queue->enqueueAt('\Andreychuk\RabbitMq\Job', ['a' => 2], $time->add(new DateInterval(
+    'PT30S'
+)));
+
+$queue->enqueueAt('\Andreychuk\RabbitMq\Job', ['a' => 3], $time->add(new DateInterval(
+    'PT2S'
+)));
+
+$queue->enqueueAt('\Andreychuk\RabbitMq\Job', ['a' => 4], $time->add(new DateInterval(
+    'PT0S'
+)));
+
+$queue->enqueue('\Andreychuk\RabbitMq\Job', ['a' => 110]);
+
+
 $rabbitMq = new \Andreychuk\RabbitMq\RabbitMqWork();
+
+$rabbitMq->setQueue('test');
+$rabbitMq->setHost('192.168.99.100');
+$rabbitMq->setPort('5672');
+$rabbitMq->setUser('admin');
+$rabbitMq->setPassword('GWzEk*DZEqd`eU2m');
+
 $rabbitMq->work();
