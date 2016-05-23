@@ -12,18 +12,15 @@ class RabbitMqWork extends RabbitMq
     public function work()
     {
         $this->connect();
-        $this->chanel->queue_declare($this->queue, false, true, false, false);
-
-        $this->chanel->basic_qos(null, 1, null);
-        $this->chanel->basic_consume(
+        var_dump("worker", $this->queue);
+        $this->channel->basic_consume(
             $this->queue, '', false, false, false, false, [$this, 'callback']
         );
 
-        while (count($this->chanel->callbacks)) {
-            $this->chanel->wait();
+        while (count($this->channel->callbacks) > 0) {
+            $this->channel->wait();
         }
 
-        $this->close();
     }
 
     /**
@@ -34,10 +31,11 @@ class RabbitMqWork extends RabbitMq
     public function callback($msg)
     {
         $data = json_decode($msg->body, true);
-
         try {
             $class = new $data['class']();
+            $class->setUp();
             call_user_func_array([$class, 'perform'], $data['data']);
+            $class->tearDown();
         } catch (\Exception $e) {
             throw new \Exception(
                 sprintf(

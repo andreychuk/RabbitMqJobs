@@ -12,8 +12,10 @@ use PhpAmqpLib\Connection\AMQPStreamConnection;
 class RabbitMq
 {
     protected $connection;
-    protected $chanel;
+    /** @var AMQPChannel */
+    protected $channel;
     protected $queue;
+    protected $exchange;
 
     private $host;
     private $port;
@@ -66,6 +68,16 @@ class RabbitMq
         $this->queue = $queue;
     }
 
+    public function setExchange($exchange)
+    {
+        $this->exchange = $exchange;
+    }
+
+    public function getExchange()
+    {
+        return $this->exchange;
+    }
+
     public function getParamsFromEnv()
     {
         $host = trim(getenv('RABBITMQ_HOST'), "'");
@@ -79,6 +91,7 @@ class RabbitMq
         $this->setUser($user);
         $this->setPassword($password);
         $this->setQueue($queue);
+        $this->setExchange(sprintf("%s.exchange", $queue));
     }
     
     protected function connect()
@@ -87,28 +100,45 @@ class RabbitMq
             $this->host, $this->port, $this->user, $this->password
         );
 
-        $this->setChanel($this->connection->channel());
-    }
+        $this->setChannel($this->connection->channel());
 
+        $this->channel->queue_declare($this->queue);
+        $this->channel->exchange_declare($this->exchange, 'direct');
+        $this->channel->queue_bind($this->queue, $this->exchange);
+
+        var_dump($this->queue, $this->exchange);
+    }
+    
     /**
-     * @param AMQPChannel $chanel
+     * @param AMQPChannel $channel
      */
-    public function setChanel($chanel)
+    public function setChannel($channel)
     {
-        $this->chanel = $chanel;
+        $this->channel = $channel;
     }
 
     /**
      * @return AMQPChannel
      */
-    public function getChanel()
+    public function getChannel()
     {
-        return $this->chanel;
+        return $this->channel;
     }
 
     public function close()
     {
-        $this->chanel->close();
+        $this->channel->close();
         $this->connection->close();
+    }
+
+    /**
+     * @param $sec
+     *
+     * @return string
+     */
+    protected function generateExchangeQueue($sec)
+    {
+        $queue = sprintf("%s.%s", $this->queue, $sec);
+        return $queue;
     }
 }
