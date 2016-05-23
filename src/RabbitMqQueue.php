@@ -12,19 +12,8 @@ class RabbitMqQueue extends RabbitMq
      */
     public function enqueue($class, $args = [])
     {
-        $this->connect();
-
-        $data['class'] = $class;
-        $data['data'] = $args;
-        $data = json_encode($data);
-
-        $msg = new AMQPMessage($data, ['delivery_mode' => 2]);
-
-        $this->channel->queue_declare($this->queue, false, true, false, false);
-        $this->channel->basic_publish($msg, '', $this->queue);
-
-        $this->close();
-
+        $date = new \DateTime();
+        $this->enqueueAt($class, $args, $date);
     }
 
     /**
