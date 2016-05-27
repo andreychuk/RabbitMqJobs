@@ -29,7 +29,6 @@ class RabbitMqQueue extends RabbitMq
         $data['class'] = $class;
         $data['data'] = $args;
         $data = json_encode($data);
-
         $msg = new AMQPMessage($data, ['delivery_mode' => 2]);
 
         $now = new \DateTime();
@@ -37,8 +36,6 @@ class RabbitMqQueue extends RabbitMq
         $sec = $date->getTimestamp() - $now->getTimestamp();
         if ($sec < 0) $sec = 0;
         $queue = $this->generateExchangeQueue($sec);
-
-        var_dump($this->queue, $this->exchange, $queue);
 
         $this->channel->queue_declare(
             $queue,
