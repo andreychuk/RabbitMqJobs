@@ -9,7 +9,8 @@ namespace Andreychuk\RabbitMq;
  */
 interface RabbitMqJobInterface
 {
-    public function setUp();
-    public function perform();
-    public function tearDown();
+    function setUp();
+    function setArgs(array $args = []);
+    function perform();
+    function tearDown();
 }

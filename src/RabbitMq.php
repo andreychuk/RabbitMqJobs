@@ -105,8 +105,6 @@ class RabbitMq
         $this->channel->queue_declare($this->queue);
         $this->channel->exchange_declare($this->exchange, 'direct');
         $this->channel->queue_bind($this->queue, $this->exchange);
-
-        var_dump($this->queue, $this->exchange);
     }
     
     /**
