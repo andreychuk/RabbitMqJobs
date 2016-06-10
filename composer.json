@@ -13,7 +13,7 @@
   ],
   "version": "0.1",
   "require": {
-    "php-amqplib/php-amqplib": "2.5.*"
+    "php-amqplib/php-amqplib": "2.6.*"
   },
   "require-dev": {
     "phpunit/phpunit": "~3.5"
