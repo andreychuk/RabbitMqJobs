@@ -10,10 +10,11 @@ class RabbitMqQueue extends RabbitMq
      * @param       $class
      * @param array $args
      */
-    public function enqueue($class, $args = [])
+    public static function enqueue($class, $args = [])
     {
         $date = new \DateTime();
-        $this->enqueueAt($class, $args, $date);
+        echo "In enqueue", PHP_EOL;
+        self::enqueueAt($class, $args, $date);
     }
 
     /**
@@ -21,11 +22,12 @@ class RabbitMqQueue extends RabbitMq
      * @param array     $args
      * @param \DateTime $date
      */
-    public function enqueueAt($class, $args, $date)
+    public static function enqueueAt($class, $args, $date)
     {
-        echo "test 1";
-        $this->connect();
-        echo "test 2";
+
+        self::connect();
+        echo "in enqueueAt", PHP_EOL;
+
         $data['class'] = $class;
         $data['data'] = $args;
         $data = json_encode($data);
@@ -35,9 +37,9 @@ class RabbitMqQueue extends RabbitMq
 
         $sec = $date->getTimestamp() - $now->getTimestamp();
         if ($sec < 0) $sec = 0;
-        $queue = $this->generateExchangeQueue($sec);
+        $queue = self::generateExchangeQueue($sec);
 
-        $this->channel->queue_declare(
+        self::$channel->queue_declare(
             $queue,
             false,
             false,
@@ -47,13 +49,16 @@ class RabbitMqQueue extends RabbitMq
             array(
                 'x-message-ttl' => array('I', $sec*1000),
                 "x-expires" => array("I", $sec*1000+1000),
-                'x-dead-letter-exchange' => array('S', $this->exchange)
+                'x-dead-letter-exchange' => array('S', self::$exchange)
             )
         );
 
-        $this->channel->exchange_declare($queue.'.exchange', 'direct');
-        $this->channel->queue_bind($queue, $queue.'.exchange');
-        $this->channel->basic_publish($msg, $queue.'.exchange');
+        self::$channel->exchange_declare($queue.'.exchange', 'direct');
+        self::$channel->queue_bind($queue, $queue.'.exchange');
+        self::$channel->basic_publish($msg, $queue.'.exchange');
+
+        self::close();
+        echo "DONE enqueueAt", PHP_EOL;
     }
 
 }

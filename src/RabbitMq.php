@@ -11,72 +11,47 @@ use PhpAmqpLib\Connection\AMQPStreamConnection;
  */
 class RabbitMq
 {
-    protected $connection;
+    /** @var  AMQPStreamConnection */
+    protected static $connection;
     /** @var AMQPChannel */
-    protected $channel;
-    protected $queue;
-    protected $exchange;
+    protected static $channel;
+    protected static $queue;
+    protected static $exchange;
 
-    private $host;
-    private $port;
-    private $user;
-    private $password;
+    protected static $host;
+    protected static $port;
+    protected static $user;
+    protected static $password;
+    protected static $vhost = '/';
+
+    private static $_instance = null;
+
+    public static function setBackend($host, $port, $user, $password,
+        $vhost = '/', $queue = 'resque'
+    ) {
+        self::$host = $host;
+        self::$port = $port;
+        self::$user = $user;
+        self::$password = $password;
+        self::$vhost = $vhost;
+        self::$queue = $queue;
+        echo "setBackend Done", PHP_EOL;
+    }
+
+    public static function getInstance()
+    {
+        if (is_null(self::$_instance)) {
+            self::$_instance = new self();
+        }
+        return self::$_instance;
+    }
 
     public function __construct()
     {
-        $this->getParamsFromEnv();
+        echo "IN CONSTRUCT", PHP_EOL;
+        self::$_instance = self::getInstance();
     }
 
-    /**
-     * @param $host
-     */
-    public function setHost($host)
-    {
-        $this->host = $host;
-    }
-
-    /**
-     * @param $port
-     */
-    public function setPort($port)
-    {
-        $this->port = $port;
-    }
-
-    /**
-     * @param $user
-     */
-    public function setUser($user)
-    {
-        $this->user = $user;
-    }
-
-    /**
-     * @param $password
-     */
-    public function setPassword($password)
-    {
-        $this->password = $password;
-    }
-
-
-    /**
-     * @param $queue
-     */
-    public function setQueue($queue)
-    {
-        $this->queue = $queue;
-    }
-
-    public function setExchange($exchange)
-    {
-        $this->exchange = $exchange;
-    }
-
-    public function getExchange()
-    {
-        return $this->exchange;
-    }
 
     public function getParamsFromEnv()
     {
@@ -93,40 +68,21 @@ class RabbitMq
         $this->setQueue($queue);
         $this->setExchange(sprintf("%s.exchange", $queue));
     }
-    
-    protected function connect()
+
+    protected static function connect()
     {
-        $this->connection = new AMQPStreamConnection(
-            $this->host, $this->port, $this->user, $this->password
+        self::$connection = new AMQPStreamConnection(
+            self::$host, self::$port, self::$user, self::$password, self::$vhost
         );
-
-        $this->setChannel($this->connection->channel());
-
-        $this->channel->queue_declare($this->queue);
-        $this->channel->exchange_declare($this->exchange, 'direct');
-        $this->channel->queue_bind($this->queue, $this->exchange);
-    }
-    
-    /**
-     * @param AMQPChannel $channel
-     */
-    public function setChannel($channel)
-    {
-        $this->channel = $channel;
+        self::$channel = self::$connection->channel();
+        echo "In Connect", PHP_EOL;
     }
 
-    /**
-     * @return AMQPChannel
-     */
-    public function getChannel()
-    {
-        return $this->channel;
-    }
 
-    public function close()
+    public static function close()
     {
-        $this->channel->close();
-        $this->connection->close();
+        self::$channel->close();
+        self::$connection->close();
     }
 
     /**
@@ -134,9 +90,9 @@ class RabbitMq
      *
      * @return string
      */
-    protected function generateExchangeQueue($sec)
+    protected static function generateExchangeQueue($sec)
     {
-        $queue = sprintf("%s.%s", $this->queue, $sec);
+        $queue = sprintf("%s.%s", self::$queue, $sec);
         return $queue;
     }
 }
