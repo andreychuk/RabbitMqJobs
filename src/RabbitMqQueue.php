@@ -23,9 +23,9 @@ class RabbitMqQueue extends RabbitMq
      */
     public function enqueueAt($class, $args, $date)
     {
-        
+        echo "test 1";
         $this->connect();
-        
+        echo "test 2";
         $data['class'] = $class;
         $data['data'] = $args;
         $data = json_encode($data);
