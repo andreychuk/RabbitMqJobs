@@ -15,9 +15,9 @@ foreach ($files as $file) {
     }
 }
 
-echo "Adding to queue", PHP_EOL;
+echo "at work", PHP_EOL;
 
-\Andreychuk\RabbitMq\RabbitMqQueue::setBackend('192.168.99.100', '5672', 'admin', 'GWzEk*DZEqd`eU2m');
-\Andreychuk\RabbitMq\RabbitMqQueue::enqueue('Test');
+\Andreychuk\RabbitMq\RabbitMqWork::setBackend('192.168.99.100', '5672', 'admin', 'GWzEk*DZEqd`eU2m');
+\Andreychuk\RabbitMq\RabbitMqWork::work();
 
 die("Done");

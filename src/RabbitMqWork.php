@@ -1,6 +1,7 @@
 <?php
 
 namespace Andreychuk\RabbitMq;
+use PhpAmqpLib\Message\AMQPMessage;
 
 /**
  * Class RabbitMqWork
@@ -9,15 +10,26 @@ namespace Andreychuk\RabbitMq;
  */
 class RabbitMqWork extends RabbitMq
 {
-    public function work()
+    public static function work()
     {
-        $this->connect();
-        $this->channel->basic_consume(
-            $this->queue, '', false, false, false, false, [$this, 'callback']
+
+        self::connect();
+        self::$channel->basic_consume(
+            self::$queue, '', false, false, false, false,
+            ['\Andreychuk\RabbitMq\RabbitMqWork', 'callback']
         );
 
-        while (count($this->channel->callbacks) > 0) {
-            $this->channel->wait();
+        while (count(self::$channel->callbacks) > 0) {
+            $pid = pcntl_fork();
+            if ($pid === -1) {
+                exit('failed to fork');
+            } else {
+                if ($pid === 0) {
+                    self::$channel->wait();
+                } else {
+                    pcntl_wait($status);
+                }
+            }
         }
 
     }
@@ -27,10 +39,12 @@ class RabbitMqWork extends RabbitMq
      *
      * @throws \Exception
      */
-    public function callback($msg)
+    public static function callback($msg)
     {
-        $data = json_decode($msg->body, true);
+
         try {
+            $data = json_decode($msg->body, true);
+            var_dump($data);
             if (class_exists($data['class'])) {
                 $class = new $data['class']();
             } else {
@@ -78,6 +92,25 @@ class RabbitMqWork extends RabbitMq
                 PHP_EOL . "RabbitMQ Error in callback function" . PHP_EOL,
                 $e->getMessage()
             );
+
+            $date = new \DateTime();
+            $message = [
+                'args' => $msg->body,
+                'status' => $e->getMessage(),
+                'date' => $date->format('c')
+            ];
+            $msgError = new AMQPMessage(json_encode($message));
+            self::$channel->queue_declare(self::$queue.'_failure', false, true, false, false);
+            self::$channel->exchange_declare(self::$queue.'_failure_'.'exchange', 'direct');
+            self::$channel->queue_bind(self::$queue.'_failure', self::$queue.'_failure_'.'exchange');
+            self::$channel->basic_publish($msgError, self::$queue.'_failure_'.'exchange');
+
+
+            $msg->delivery_info['channel']->basic_ack(
+                $msg->delivery_info['delivery_tag']
+            );
+
         }
     }
+
 }

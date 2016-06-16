@@ -13,7 +13,6 @@ class RabbitMqQueue extends RabbitMq
     public static function enqueue($class, $args = [])
     {
         $date = new \DateTime();
-        echo "In enqueue", PHP_EOL;
         self::enqueueAt($class, $args, $date);
     }
 
@@ -26,7 +25,6 @@ class RabbitMqQueue extends RabbitMq
     {
 
         self::connect();
-        echo "in enqueueAt", PHP_EOL;
 
         $data['class'] = $class;
         $data['data'] = $args;
@@ -37,8 +35,8 @@ class RabbitMqQueue extends RabbitMq
 
         $sec = $date->getTimestamp() - $now->getTimestamp();
         if ($sec < 0) $sec = 0;
-        $queue = self::generateExchangeQueue($sec);
-
+        $queue = self::generateExchangeQueue($date->getTimestamp());
+        echo $queue, PHP_EOL;
         self::$channel->queue_declare(
             $queue,
             false,
@@ -58,7 +56,6 @@ class RabbitMqQueue extends RabbitMq
         self::$channel->basic_publish($msg, $queue.'.exchange');
 
         self::close();
-        echo "DONE enqueueAt", PHP_EOL;
     }
-
+    
 }
